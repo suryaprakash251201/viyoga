@@ -122,10 +122,15 @@ func main() {
 	}
 
 	var dnsClient *dns.TechnitiumClient
-	if cfg.Modules.DNSGateway {
+	// Auto-enable DNS gateway if api_url and api_token are configured
+	if cfg.Modules.DNSGateway || (cfg.DNS.APIURL != "" && cfg.DNS.APIToken != "") {
 		dnsClient = dns.NewTechnitiumClient(cfg.DNS.APIURL, cfg.DNS.APIToken)
-		if dnsClient != nil && dnsClient.IsAvailable() {
-			log.Info().Msg("DNS gateway module enabled")
+		if dnsClient != nil {
+			if dnsClient.IsAvailable() {
+				log.Info().Str("url", cfg.DNS.APIURL).Msg("DNS gateway connected")
+			} else {
+				log.Warn().Str("url", cfg.DNS.APIURL).Msg("DNS gateway configured but not reachable yet — will retry on requests")
+			}
 		}
 	}
 

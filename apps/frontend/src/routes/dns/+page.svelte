@@ -7,13 +7,19 @@
 	let stats: DNSStats | null = $state(null);
 	let loading = $state(true);
 	let error = $state('');
+	let errorType = $state<'not_configured' | 'connection_error'>('not_configured');
 	let showSetup = $state(false);
 
 	onMount(async () => {
 		try {
 			stats = await fetchDNSStats();
 		} catch (e) {
-			error = e instanceof Error ? e.message : 'DNS unavailable';
+			const msg = e instanceof Error ? e.message : 'DNS unavailable';
+			error = msg;
+			// If backend says "not available" → not configured; otherwise connection/API error
+			errorType = msg.includes('not available') || msg.includes('unavailable')
+				? 'not_configured'
+				: 'connection_error';
 		}
 		loading = false;
 	});
@@ -41,44 +47,82 @@
 		<div class="card bg-base-200 border border-base-300/50 overflow-hidden animate-slide-up">
 			<div class="card-body p-0">
 				<!-- Gradient banner -->
-				<div class="bg-gradient-to-r from-info/20 via-primary/10 to-transparent px-6 py-5 border-b border-base-300/30">
+				<div class="bg-gradient-to-r {errorType === 'connection_error' ? 'from-error/20 via-warning/10' : 'from-info/20 via-primary/10'} to-transparent px-6 py-5 border-b border-base-300/30">
 					<div class="flex items-center gap-3">
-						<div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-info/20 text-info">
+						<div class="flex h-12 w-12 items-center justify-center rounded-2xl {errorType === 'connection_error' ? 'bg-error/20 text-error' : 'bg-info/20 text-info'}">
 							<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-								<path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+								{#if errorType === 'connection_error'}
+									<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+								{:else}
+									<path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+								{/if}
 							</svg>
 						</div>
 						<div>
-							<h2 class="text-lg font-semibold">DNS Gateway Not Configured</h2>
-							<p class="text-sm text-base-content/60">Set up Technitium DNS Server to enable network-level ad blocking</p>
+							<h2 class="text-lg font-semibold">{errorType === 'connection_error' ? 'DNS Connection Failed' : 'DNS Gateway Not Configured'}</h2>
+							<p class="text-sm text-base-content/60">
+								{#if errorType === 'connection_error'}
+									Technitium DNS is configured but not reachable: <span class="text-error font-mono text-xs">{error}</span>
+								{:else}
+									Set up Technitium DNS Server to enable network-level ad blocking
+								{/if}
+							</p>
 						</div>
 					</div>
 				</div>
 
 				<div class="p-6 space-y-5">
-					<!-- Step-by-step -->
-					<div class="space-y-4">
-						<h3 class="text-sm font-semibold uppercase tracking-wider text-base-content/50">Setup Steps</h3>
+					{#if errorType === 'connection_error'}
+						<!-- Troubleshooting for connection error -->
+						<div class="space-y-4">
+							<h3 class="text-sm font-semibold uppercase tracking-wider text-base-content/50">Troubleshooting</h3>
 
-						{#each [
-							{ step: 1, title: 'Install Technitium DNS Server', cmd: 'curl -sSL https://download.technitium.com/dns/install.sh | sudo bash', desc: 'Installs Technitium DNS on your server' },
-							{ step: 2, title: 'Get API Token', cmd: null, desc: 'Open http://your-server:5380 → Settings → API Token → Copy' },
-							{ step: 3, title: 'Configure Viyoga', cmd: 'sudo nano /etc/viyoga/viyoga.yaml', desc: 'Update the dns section with your API URL and token' }
-						] as item}
-							<div class="flex gap-4 p-4 rounded-xl bg-base-300/30 hover:bg-base-300/50 transition-colors">
-								<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary text-sm font-bold">
-									{item.step}
+							{#each [
+								{ title: 'Check Technitium is running', cmd: 'sudo systemctl status technitium-dns-server', desc: 'Verify the DNS server service is active' },
+								{ title: 'Verify the API URL', cmd: null, desc: 'Try opening http://localhost:5380 in your browser on the server' },
+								{ title: 'Check your API token', cmd: null, desc: 'Go to Technitium Admin → Settings → API Token and regenerate if needed' },
+								{ title: 'Restart Viyoga after config changes', cmd: 'sudo systemctl restart viyoga', desc: 'Apply changes to viyoga.yaml' }
+							] as item, i}
+								<div class="flex gap-4 p-4 rounded-xl bg-base-300/30 hover:bg-base-300/50 transition-colors">
+									<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning/15 text-warning text-sm font-bold">
+										{i + 1}
+									</div>
+									<div class="flex-1 min-w-0">
+										<p class="text-sm font-medium">{item.title}</p>
+										<p class="text-xs text-base-content/50 mt-0.5">{item.desc}</p>
+										{#if item.cmd}
+											<code class="block mt-2 text-xs font-mono bg-base-100 rounded-lg px-3 py-2 text-primary overflow-x-auto">{item.cmd}</code>
+										{/if}
+									</div>
 								</div>
-								<div class="flex-1 min-w-0">
-									<p class="text-sm font-medium">{item.title}</p>
-									<p class="text-xs text-base-content/50 mt-0.5">{item.desc}</p>
-									{#if item.cmd}
-										<code class="block mt-2 text-xs font-mono bg-base-100 rounded-lg px-3 py-2 text-primary overflow-x-auto">{item.cmd}</code>
-									{/if}
+							{/each}
+						</div>
+					{:else}
+						<!-- Setup steps for not configured -->
+						<div class="space-y-4">
+							<h3 class="text-sm font-semibold uppercase tracking-wider text-base-content/50">Setup Steps</h3>
+
+							{#each [
+								{ step: 1, title: 'Install Technitium DNS Server', cmd: 'curl -sSL https://download.technitium.com/dns/install.sh | sudo bash', desc: 'Installs Technitium DNS on your server' },
+								{ step: 2, title: 'Get API Token', cmd: null, desc: 'Open http://your-server:5380 → Settings → API Token → Copy' },
+								{ step: 3, title: 'Configure Viyoga', cmd: 'sudo nano /etc/viyoga/viyoga.yaml', desc: 'Add the dns section with your API URL and token' },
+								{ step: 4, title: 'Restart Viyoga', cmd: 'sudo systemctl restart viyoga', desc: 'Apply the configuration changes' }
+							] as item}
+								<div class="flex gap-4 p-4 rounded-xl bg-base-300/30 hover:bg-base-300/50 transition-colors">
+									<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary text-sm font-bold">
+										{item.step}
+									</div>
+									<div class="flex-1 min-w-0">
+										<p class="text-sm font-medium">{item.title}</p>
+										<p class="text-xs text-base-content/50 mt-0.5">{item.desc}</p>
+										{#if item.cmd}
+											<code class="block mt-2 text-xs font-mono bg-base-100 rounded-lg px-3 py-2 text-primary overflow-x-auto">{item.cmd}</code>
+										{/if}
+									</div>
 								</div>
-							</div>
-						{/each}
-					</div>
+							{/each}
+						</div>
+					{/if}
 
 					<!-- Config example -->
 					<button class="btn btn-sm btn-ghost gap-2 text-base-content/60" onclick={() => showSetup = !showSetup}>
@@ -90,10 +134,7 @@
 
 					{#if showSetup}
 						<div class="bg-base-100 rounded-xl p-4 font-mono text-xs leading-relaxed animate-slide-up">
-							<pre class="text-base-content/80"><span class="text-primary">modules:</span>
-  <span class="text-info">dns_gateway:</span> <span class="text-success">true</span>
-
-<span class="text-primary">dns:</span>
+							<pre class="text-base-content/80"><span class="text-primary">dns:</span>
   <span class="text-info">engine:</span> <span class="text-warning">"technitium"</span>
   <span class="text-info">api_url:</span> <span class="text-warning">"http://localhost:5380"</span>
   <span class="text-info">api_token:</span> <span class="text-warning">"your-api-token-here"</span></pre>
