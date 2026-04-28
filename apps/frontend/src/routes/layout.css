@@ -8,26 +8,26 @@
   default: true;
   prefersdark: true;
   color-scheme: dark;
-  --color-base-100: oklch(13% 0.015 265);
-  --color-base-200: oklch(16% 0.018 265);
-  --color-base-300: oklch(21% 0.02 265);
-  --color-base-content: oklch(93% 0.008 265);
-  --color-primary: oklch(72% 0.19 195);
-  --color-primary-content: oklch(12% 0.02 195);
-  --color-secondary: oklch(62% 0.22 285);
-  --color-secondary-content: oklch(95% 0.02 285);
-  --color-accent: oklch(70% 0.17 170);
-  --color-accent-content: oklch(12% 0.02 170);
-  --color-neutral: oklch(23% 0.015 265);
-  --color-neutral-content: oklch(86% 0.008 265);
-  --color-info: oklch(64% 0.2 245);
-  --color-info-content: oklch(95% 0.01 245);
-  --color-success: oklch(68% 0.22 148);
-  --color-success-content: oklch(12% 0.02 148);
-  --color-warning: oklch(78% 0.17 75);
-  --color-warning-content: oklch(12% 0.02 75);
-  --color-error: oklch(62% 0.24 22);
-  --color-error-content: oklch(95% 0.01 22);
+  --color-base-100: oklch(12% 0.02 250); /* Deep slate black */
+  --color-base-200: oklch(16% 0.025 250); /* Slightly lighter for cards */
+  --color-base-300: oklch(20% 0.03 250); /* Borders and subtle accents */
+  --color-base-content: oklch(95% 0.01 250);
+  --color-primary: oklch(75% 0.16 195); /* Bright Cyan */
+  --color-primary-content: oklch(15% 0.02 250);
+  --color-secondary: oklch(68% 0.18 285);
+  --color-secondary-content: oklch(98% 0.01 285);
+  --color-accent: oklch(75% 0.18 160); /* Bright teal/green */
+  --color-accent-content: oklch(15% 0.02 250);
+  --color-neutral: oklch(25% 0.02 250);
+  --color-neutral-content: oklch(90% 0.01 250);
+  --color-info: oklch(70% 0.15 245);
+  --color-info-content: oklch(15% 0.02 250);
+  --color-success: oklch(72% 0.18 150); /* Vibrant green */
+  --color-success-content: oklch(15% 0.02 250);
+  --color-warning: oklch(82% 0.16 80); /* Bright orange/yellow */
+  --color-warning-content: oklch(15% 0.02 250);
+  --color-error: oklch(65% 0.22 25); /* Vibrant red */
+  --color-error-content: oklch(98% 0.01 25);
   --radius-selector: 0.75rem;
   --radius-field: 0.5rem;
   --radius-box: 1rem;
@@ -44,26 +44,26 @@
   default: false;
   prefersdark: false;
   color-scheme: light;
-  --color-base-100: oklch(98.5% 0.004 265);
-  --color-base-200: oklch(96% 0.006 265);
-  --color-base-300: oklch(92% 0.008 265);
-  --color-base-content: oklch(18% 0.02 265);
-  --color-primary: oklch(52% 0.24 195);
-  --color-primary-content: oklch(98% 0.005 195);
-  --color-secondary: oklch(48% 0.24 285);
-  --color-secondary-content: oklch(98% 0.005 285);
-  --color-accent: oklch(50% 0.2 170);
-  --color-accent-content: oklch(98% 0.005 170);
-  --color-neutral: oklch(88% 0.008 265);
-  --color-neutral-content: oklch(22% 0.02 265);
-  --color-info: oklch(50% 0.22 245);
-  --color-info-content: oklch(98% 0.005 245);
-  --color-success: oklch(50% 0.24 148);
-  --color-success-content: oklch(98% 0.005 148);
-  --color-warning: oklch(68% 0.2 75);
-  --color-warning-content: oklch(18% 0.02 75);
-  --color-error: oklch(52% 0.26 22);
-  --color-error-content: oklch(98% 0.005 22);
+  --color-base-100: oklch(98% 0.005 250); /* Clean white */
+  --color-base-200: oklch(95% 0.01 250); /* Soft gray-blue */
+  --color-base-300: oklch(90% 0.015 250); /* Borders */
+  --color-base-content: oklch(25% 0.02 250); /* Dark text */
+  --color-primary: oklch(60% 0.18 195); /* Deep cyan */
+  --color-primary-content: oklch(98% 0.005 250);
+  --color-secondary: oklch(55% 0.18 285);
+  --color-secondary-content: oklch(98% 0.005 250);
+  --color-accent: oklch(58% 0.18 160);
+  --color-accent-content: oklch(98% 0.005 250);
+  --color-neutral: oklch(85% 0.015 250);
+  --color-neutral-content: oklch(20% 0.02 250);
+  --color-info: oklch(55% 0.16 245);
+  --color-info-content: oklch(98% 0.005 250);
+  --color-success: oklch(55% 0.18 150);
+  --color-success-content: oklch(98% 0.005 250);
+  --color-warning: oklch(70% 0.18 80);
+  --color-warning-content: oklch(20% 0.02 250);
+  --color-error: oklch(55% 0.22 25);
+  --color-error-content: oklch(98% 0.005 25);
   --radius-selector: 0.75rem;
   --radius-field: 0.5rem;
   --radius-box: 1rem;
@@ -116,6 +116,14 @@ button, a, input, select, textarea, .btn, .toggle, .badge {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary, oklch(72% 0.19 195));
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* ── Keyframe animations ── */
