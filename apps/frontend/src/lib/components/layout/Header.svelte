@@ -11,7 +11,7 @@
 	});
 </script>
 
-<header class="flex h-16 items-center justify-between border-b border-base-300 bg-base-200/80 px-6 backdrop-blur-sm">
+<header class="flex h-16 items-center justify-between border-b border-base-300/40 bg-base-200/90 px-6 backdrop-blur-md">
 	<!-- Left: Server info -->
 	<div class="flex items-center gap-4">
 		<div>
@@ -35,24 +35,35 @@
 	</div>
 
 	<!-- Right: Status indicators -->
-	<div class="flex items-center gap-3">
+	<div class="flex items-center gap-2.5">
 		<!-- Uptime -->
 		{#if $systemInfo}
-			<div class="hidden items-center gap-1.5 rounded-lg bg-base-300/50 px-3 py-1.5 text-xs text-base-content/60 sm:flex">
-				<span>⏱️</span>
+			<div class="hidden items-center gap-1.5 rounded-lg bg-base-300/40 px-3 py-1.5 text-xs text-base-content/60 sm:flex">
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+				</svg>
 				<span>Uptime: {formatUptime($systemInfo.uptime_seconds)}</span>
 			</div>
 		{/if}
 
 		<!-- Connection status -->
-		<div class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs {$wsConnected ? 'bg-success/10 text-success' : 'bg-error/10 text-error'}">
-			<span class="font-medium">{$wsConnected ? '● Live' : '○ Offline'}</span>
+		<div class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium {$wsConnected ? 'bg-success/10 text-success' : 'bg-error/10 text-error'}">
+			{#if $wsConnected}
+				<span class="relative flex h-1.5 w-1.5">
+					<span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75"></span>
+					<span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-success"></span>
+				</span>
+				Live
+			{:else}
+				<span class="h-1.5 w-1.5 rounded-full bg-error"></span>
+				Offline
+			{/if}
 		</div>
 
 		<!-- Theme toggle -->
 		<button
 			onclick={() => theme.toggle()}
-			class="btn btn-ghost btn-sm btn-circle relative overflow-hidden"
+			class="btn btn-ghost btn-sm btn-circle relative overflow-hidden hover:bg-base-300/50"
 			title={$isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
 		>
 			<div class="relative w-5 h-5">
@@ -69,7 +80,7 @@
 		</button>
 
 		<!-- Time -->
-		<div class="hidden rounded-lg bg-base-300/50 px-3 py-1.5 text-xs tabular-nums text-base-content/50 lg:block font-mono">
+		<div class="hidden rounded-lg bg-base-300/40 px-3 py-1.5 text-xs tabular-nums text-base-content/50 lg:block font-mono">
 			{now.toLocaleTimeString('en-US', { hour12: false })}
 		</div>
 	</div>

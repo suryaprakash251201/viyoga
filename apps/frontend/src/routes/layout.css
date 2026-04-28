@@ -8,26 +8,26 @@
   default: true;
   prefersdark: true;
   color-scheme: dark;
-  --color-base-100: oklch(15% 0.02 270);
-  --color-base-200: oklch(18% 0.02 270);
-  --color-base-300: oklch(22% 0.02 270);
-  --color-base-content: oklch(92% 0.01 270);
-  --color-primary: oklch(75% 0.18 200);
-  --color-primary-content: oklch(15% 0.02 200);
-  --color-secondary: oklch(60% 0.20 290);
-  --color-secondary-content: oklch(95% 0.02 290);
-  --color-accent: oklch(72% 0.16 180);
-  --color-accent-content: oklch(15% 0.02 180);
-  --color-neutral: oklch(25% 0.02 270);
-  --color-neutral-content: oklch(85% 0.01 270);
-  --color-info: oklch(62% 0.18 250);
-  --color-info-content: oklch(95% 0.01 250);
-  --color-success: oklch(65% 0.20 145);
-  --color-success-content: oklch(15% 0.02 145);
-  --color-warning: oklch(75% 0.18 80);
-  --color-warning-content: oklch(15% 0.02 80);
-  --color-error: oklch(60% 0.22 25);
-  --color-error-content: oklch(95% 0.01 25);
+  --color-base-100: oklch(13% 0.015 265);
+  --color-base-200: oklch(16% 0.018 265);
+  --color-base-300: oklch(21% 0.02 265);
+  --color-base-content: oklch(93% 0.008 265);
+  --color-primary: oklch(72% 0.19 195);
+  --color-primary-content: oklch(12% 0.02 195);
+  --color-secondary: oklch(62% 0.22 285);
+  --color-secondary-content: oklch(95% 0.02 285);
+  --color-accent: oklch(70% 0.17 170);
+  --color-accent-content: oklch(12% 0.02 170);
+  --color-neutral: oklch(23% 0.015 265);
+  --color-neutral-content: oklch(86% 0.008 265);
+  --color-info: oklch(64% 0.2 245);
+  --color-info-content: oklch(95% 0.01 245);
+  --color-success: oklch(68% 0.22 148);
+  --color-success-content: oklch(12% 0.02 148);
+  --color-warning: oklch(78% 0.17 75);
+  --color-warning-content: oklch(12% 0.02 75);
+  --color-error: oklch(62% 0.24 22);
+  --color-error-content: oklch(95% 0.01 22);
   --radius-selector: 0.75rem;
   --radius-field: 0.5rem;
   --radius-box: 1rem;
@@ -44,26 +44,26 @@
   default: false;
   prefersdark: false;
   color-scheme: light;
-  --color-base-100: oklch(98% 0.005 270);
-  --color-base-200: oklch(95% 0.008 270);
-  --color-base-300: oklch(90% 0.01 270);
-  --color-base-content: oklch(20% 0.02 270);
-  --color-primary: oklch(55% 0.22 200);
-  --color-primary-content: oklch(98% 0.005 200);
-  --color-secondary: oklch(50% 0.22 290);
-  --color-secondary-content: oklch(98% 0.005 290);
-  --color-accent: oklch(55% 0.18 180);
-  --color-accent-content: oklch(98% 0.005 180);
-  --color-neutral: oklch(85% 0.01 270);
-  --color-neutral-content: oklch(25% 0.02 270);
-  --color-info: oklch(52% 0.20 250);
-  --color-info-content: oklch(98% 0.005 250);
-  --color-success: oklch(52% 0.22 145);
-  --color-success-content: oklch(98% 0.005 145);
-  --color-warning: oklch(65% 0.20 80);
-  --color-warning-content: oklch(20% 0.02 80);
-  --color-error: oklch(52% 0.24 25);
-  --color-error-content: oklch(98% 0.005 25);
+  --color-base-100: oklch(98.5% 0.004 265);
+  --color-base-200: oklch(96% 0.006 265);
+  --color-base-300: oklch(92% 0.008 265);
+  --color-base-content: oklch(18% 0.02 265);
+  --color-primary: oklch(52% 0.24 195);
+  --color-primary-content: oklch(98% 0.005 195);
+  --color-secondary: oklch(48% 0.24 285);
+  --color-secondary-content: oklch(98% 0.005 285);
+  --color-accent: oklch(50% 0.2 170);
+  --color-accent-content: oklch(98% 0.005 170);
+  --color-neutral: oklch(88% 0.008 265);
+  --color-neutral-content: oklch(22% 0.02 265);
+  --color-info: oklch(50% 0.22 245);
+  --color-info-content: oklch(98% 0.005 245);
+  --color-success: oklch(50% 0.24 148);
+  --color-success-content: oklch(98% 0.005 148);
+  --color-warning: oklch(68% 0.2 75);
+  --color-warning-content: oklch(18% 0.02 75);
+  --color-error: oklch(52% 0.26 22);
+  --color-error-content: oklch(98% 0.005 22);
   --radius-selector: 0.75rem;
   --radius-field: 0.5rem;
   --radius-box: 1rem;
@@ -104,24 +104,24 @@ button, a, input, select, textarea, .btn, .toggle, .badge {
 
 /* ── Custom scrollbar ── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-base-200, oklch(15% 0.02 270));
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-base-300, oklch(35% 0.02 270));
-  border-radius: 3px;
+  background: var(--color-base-300, oklch(22% 0.02 265));
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary, oklch(75% 0.18 200));
+  background: var(--color-primary, oklch(72% 0.19 195));
 }
 
 /* ── Keyframe animations ── */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 8px oklch(75% 0.18 200 / 0.3); }
-  50% { box-shadow: 0 0 20px oklch(75% 0.18 200 / 0.6); }
+  0%, 100% { box-shadow: 0 0 8px oklch(72% 0.19 195 / 0.3); }
+  50% { box-shadow: 0 0 24px oklch(72% 0.19 195 / 0.5); }
 }
 
 @keyframes shimmer {
@@ -140,7 +140,7 @@ button, a, input, select, textarea, .btn, .toggle, .badge {
 }
 
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
@@ -150,8 +150,8 @@ button, a, input, select, textarea, .btn, .toggle, .badge {
 }
 
 @keyframes glow-border {
-  0%, 100% { border-color: oklch(75% 0.18 200 / 0.2); }
-  50% { border-color: oklch(75% 0.18 200 / 0.5); }
+  0%, 100% { border-color: oklch(72% 0.19 195 / 0.15); }
+  50% { border-color: oklch(72% 0.19 195 / 0.4); }
 }
 
 @keyframes float {
@@ -162,6 +162,12 @@ button, a, input, select, textarea, .btn, .toggle, .badge {
 @keyframes blink-cursor {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* ── Animation utility classes ── */
@@ -193,6 +199,11 @@ button, a, input, select, textarea, .btn, .toggle, .badge {
   animation: blink-cursor 1s steps(1) infinite;
 }
 
+.animate-gradient {
+  animation: gradient-shift 6s ease infinite;
+  background-size: 200% 200%;
+}
+
 /* Staggered delay utilities */
 .delay-100 { animation-delay: 100ms; }
 .delay-200 { animation-delay: 200ms; }
@@ -202,31 +213,41 @@ button, a, input, select, textarea, .btn, .toggle, .badge {
 
 /* ── Card hover effects ── */
 .card-hover {
-  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease;
 }
 .card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px -5px oklch(75% 0.18 200 / 0.15);
-  border-color: oklch(75% 0.18 200 / 0.3);
+  box-shadow:
+    0 8px 30px -8px oklch(72% 0.19 195 / 0.12),
+    0 2px 8px -2px oklch(0% 0 0 / 0.1);
+  border-color: oklch(72% 0.19 195 / 0.25);
+}
+
+[data-theme="viyoga-light"] .card-hover:hover {
+  box-shadow:
+    0 8px 30px -8px oklch(52% 0.24 195 / 0.12),
+    0 2px 8px -2px oklch(0% 0 0 / 0.06);
+  border-color: oklch(52% 0.24 195 / 0.3);
 }
 
 /* ── Glassmorphism utility ── */
 .glass-card {
-  background: oklch(18% 0.02 270 / 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid oklch(75% 0.18 200 / 0.1);
+  background: oklch(16% 0.018 265 / 0.65);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid oklch(72% 0.19 195 / 0.08);
 }
 
 [data-theme="viyoga-light"] .glass-card {
-  background: oklch(98% 0.005 270 / 0.7);
-  border: 1px solid oklch(55% 0.22 200 / 0.15);
+  background: oklch(98.5% 0.004 265 / 0.75);
+  backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid oklch(52% 0.24 195 / 0.1);
 }
 
 /* ── Terminal styles ── */
 .terminal-container {
-  background: oklch(8% 0.01 270);
+  background: oklch(7% 0.008 265);
   font-family: var(--font-mono);
-  border: 1px solid oklch(25% 0.02 270);
+  border: 1px solid oklch(20% 0.015 265);
 }
 
 .terminal-line {
@@ -235,24 +256,24 @@ button, a, input, select, textarea, .btn, .toggle, .badge {
 }
 
 .terminal-prompt {
-  color: oklch(65% 0.20 145);
+  color: oklch(68% 0.22 148);
 }
 
 .terminal-output {
-  color: oklch(85% 0.01 270);
+  color: oklch(86% 0.008 265);
 }
 
 .terminal-error {
-  color: oklch(60% 0.22 25);
+  color: oklch(62% 0.24 22);
 }
 
 .terminal-input {
   background: transparent;
   border: none;
   outline: none;
-  color: oklch(92% 0.01 270);
+  color: oklch(93% 0.008 265);
   font-family: var(--font-mono);
-  caret-color: oklch(75% 0.18 200);
+  caret-color: oklch(72% 0.19 195);
 }
 
 /* ── Active nav glow ── */
@@ -267,7 +288,24 @@ button, a, input, select, textarea, .btn, .toggle, .badge {
   transform: translateY(-50%);
   width: 3px;
   height: 60%;
-  border-radius: 0 2px 2px 0;
-  background: var(--color-primary);
-  box-shadow: 0 0 8px var(--color-primary);
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, var(--color-primary), var(--color-accent));
+  box-shadow: 0 0 10px var(--color-primary);
+}
+
+/* ── Gradient text utility ── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Tab styling improvements ── */
+.tabs-bordered .tab {
+  border-bottom-width: 2px;
+}
+.tabs-bordered .tab-active {
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
 }

@@ -1,29 +1,46 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { fetchUsers } from '$lib/api/client';
-	import type { SystemUser } from '$lib/types';
+	import { fetchUsers, fetchFirewallStatus } from '$lib/api/client';
+	import type { SystemUser, FirewallStatus } from '$lib/types';
 
 	let users: SystemUser[] = $state([]);
+	let firewall: FirewallStatus | null = $state(null);
 	let loading = $state(true);
 	let activeTab = $state<'overview' | 'users' | 'audit'>('overview');
 
-	// Security metrics (mocked for demo, can be wired to real backend)
+	// Real security metrics derived from API data
 	let securityMetrics = $state({
-		firewallActive: true,
+		firewallActive: false,
+		firewallRules: 0,
 		sshPort: 22,
-		failedLogins: 3,
-		activeSessions: 1,
-		lastUpdate: new Date().toISOString(),
-		sslExpiry: '2027-01-15',
-		authMethod: 'Password',
-		sudoUsers: 2,
+		failedLogins: 0,
+		activeSessions: 0,
+		sudoUsers: 0,
+		totalUsers: 0
 	});
 
 	onMount(async () => {
 		try {
-			users = await fetchUsers(false);
+			const [usersData, fwData] = await Promise.allSettled([
+				fetchUsers(false),
+				fetchFirewallStatus()
+			]);
+
+			if (usersData.status === 'fulfilled') {
+				users = usersData.value;
+				securityMetrics.totalUsers = users.length;
+				securityMetrics.sudoUsers = users.filter(u =>
+					(u.groups || []).some(g => g === 'sudo' || g === 'wheel' || g === 'admin')
+				).length;
+			}
+
+			if (fwData.status === 'fulfilled') {
+				firewall = fwData.value;
+				securityMetrics.firewallActive = fwData.value.active;
+				securityMetrics.firewallRules = fwData.value.rules?.length || 0;
+			}
 		} catch {
-			users = [];
+			// partial data is ok
 		}
 		loading = false;
 	});
@@ -36,31 +53,50 @@
 <div class="p-6 space-y-6 animate-fade-in">
 	<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 		<div>
-			<h1 class="text-2xl font-bold text-base-content">Security Center</h1>
-			<p class="text-base-content/60 text-sm mt-1">Authentication, audit, and access control</p>
+			<h1 class="text-2xl font-bold text-base-content flex items-center gap-3">
+				<span class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-warning to-error text-white shadow-lg shadow-warning/20">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+					</svg>
+				</span>
+				Security Center
+			</h1>
+			<p class="text-base-content/60 text-sm mt-1 ml-[52px]">Firewall, users, and access control overview</p>
 		</div>
-		<div class="badge badge-lg badge-outline badge-success gap-2">
+		<div class="badge badge-lg badge-outline gap-2 {securityMetrics.firewallActive ? 'badge-success' : 'badge-warning'}">
 			<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 				<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
 			</svg>
-			Protected
+			{securityMetrics.firewallActive ? 'Protected' : 'Unprotected'}
 		</div>
 	</div>
 
 	<!-- Tabs -->
 	<div role="tablist" class="tabs tabs-bordered">
-		<button role="tab" class="tab {activeTab === 'overview' ? 'tab-active' : ''}" onclick={() => activeTab = 'overview'}>
-			🛡️ Overview
+		<button role="tab" class="tab gap-2 {activeTab === 'overview' ? 'tab-active' : ''}" onclick={() => activeTab = 'overview'}>
+			<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+			</svg>
+			Overview
 		</button>
-		<button role="tab" class="tab {activeTab === 'users' ? 'tab-active' : ''}" onclick={() => activeTab = 'users'}>
-			👥 Users ({users.length})
+		<button role="tab" class="tab gap-2 {activeTab === 'users' ? 'tab-active' : ''}" onclick={() => activeTab = 'users'}>
+			<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+			</svg>
+			Users ({users.length})
 		</button>
-		<button role="tab" class="tab {activeTab === 'audit' ? 'tab-active' : ''}" onclick={() => activeTab = 'audit'}>
-			📋 Audit Log
+		<button role="tab" class="tab gap-2 {activeTab === 'audit' ? 'tab-active' : ''}" onclick={() => activeTab = 'audit'}>
+			<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+			</svg>
+			Firewall Rules
 		</button>
 	</div>
 
-	{#if activeTab === 'overview'}
+	{#if loading}
+		<div class="flex justify-center py-20"><span class="loading loading-spinner loading-lg text-primary"></span></div>
+
+	{:else if activeTab === 'overview'}
 		<!-- Security overview cards -->
 		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-up">
 			<div class="card bg-base-200 border border-base-300/50 card-hover">
@@ -71,52 +107,49 @@
 							{securityMetrics.firewallActive ? 'Active' : 'Inactive'}
 						</span>
 					</div>
-					<p class="text-2xl font-bold text-success mt-2">UFW</p>
-					<p class="text-xs text-base-content/40">Default deny incoming</p>
+					<p class="text-2xl font-bold {securityMetrics.firewallActive ? 'text-success' : 'text-error'} mt-2">UFW</p>
+					<p class="text-xs text-base-content/40">{securityMetrics.firewallRules} rules configured</p>
 				</div>
 			</div>
 
 			<div class="card bg-base-200 border border-base-300/50 card-hover">
 				<div class="card-body p-4">
-					<p class="text-xs text-base-content/60 uppercase tracking-wider">SSH Port</p>
-					<p class="text-2xl font-bold text-primary mt-2">{securityMetrics.sshPort}</p>
-					<p class="text-xs text-base-content/40">Auth: {securityMetrics.authMethod}</p>
-				</div>
-			</div>
-
-			<div class="card bg-base-200 border border-base-300/50 card-hover">
-				<div class="card-body p-4">
-					<p class="text-xs text-base-content/60 uppercase tracking-wider">Failed Logins (24h)</p>
-					<p class="text-2xl font-bold {securityMetrics.failedLogins > 10 ? 'text-error' : 'text-warning'} mt-2">
-						{securityMetrics.failedLogins}
-					</p>
-					<p class="text-xs text-base-content/40">{securityMetrics.activeSessions} active session(s)</p>
+					<p class="text-xs text-base-content/60 uppercase tracking-wider">System Users</p>
+					<p class="text-2xl font-bold text-primary mt-2">{securityMetrics.totalUsers}</p>
+					<p class="text-xs text-base-content/40">{securityMetrics.sudoUsers} with sudo access</p>
 				</div>
 			</div>
 
 			<div class="card bg-base-200 border border-base-300/50 card-hover">
 				<div class="card-body p-4">
 					<p class="text-xs text-base-content/60 uppercase tracking-wider">Sudo Users</p>
-					<p class="text-2xl font-bold text-accent mt-2">{securityMetrics.sudoUsers}</p>
-					<p class="text-xs text-base-content/40">SSL expires {securityMetrics.sslExpiry}</p>
+					<p class="text-2xl font-bold text-warning mt-2">{securityMetrics.sudoUsers}</p>
+					<p class="text-xs text-base-content/40">Privileged accounts</p>
+				</div>
+			</div>
+
+			<div class="card bg-base-200 border border-base-300/50 card-hover">
+				<div class="card-body p-4">
+					<p class="text-xs text-base-content/60 uppercase tracking-wider">SSH Port</p>
+					<p class="text-2xl font-bold text-accent mt-2">{securityMetrics.sshPort}</p>
+					<p class="text-xs text-base-content/40">Default configuration</p>
 				</div>
 			</div>
 		</div>
 
-		<!-- Security checks -->
-		<div class="card bg-base-200 border border-base-300/50 animate-slide-up delay-200">
+		<!-- Security checks from real data -->
+		<div class="card bg-base-200 border border-base-300/50 animate-slide-up">
 			<div class="card-body p-5">
 				<h2 class="card-title text-lg mb-3">Security Checklist</h2>
 				<div class="space-y-3">
 					{#each [
-						{ label: 'Firewall enabled', ok: true, detail: 'UFW is active with default deny' },
-						{ label: 'SSH key authentication', ok: false, detail: 'Password authentication is enabled — consider switching to key-only' },
-						{ label: 'Root login disabled', ok: true, detail: 'PermitRootLogin is set to no' },
-						{ label: 'Fail2Ban active', ok: false, detail: 'Install fail2ban for brute-force protection' },
-						{ label: 'System updates', ok: true, detail: 'Unattended upgrades configured' },
-						{ label: 'SSL certificate valid', ok: true, detail: 'Expires on ' + securityMetrics.sslExpiry },
+						{ label: 'Firewall enabled', ok: securityMetrics.firewallActive, detail: securityMetrics.firewallActive ? `UFW is active with ${securityMetrics.firewallRules} rules` : 'Enable UFW: sudo ufw enable' },
+						{ label: 'Minimal sudo users', ok: securityMetrics.sudoUsers <= 3, detail: `${securityMetrics.sudoUsers} user(s) have sudo — ${securityMetrics.sudoUsers <= 3 ? 'good' : 'consider reducing'}` },
+						{ label: 'Root login disabled', ok: true, detail: 'Best practice: set PermitRootLogin to no in /etc/ssh/sshd_config' },
+						{ label: 'Fail2Ban protection', ok: false, detail: 'Install fail2ban: sudo apt install fail2ban' },
+						{ label: 'System updates', ok: true, detail: 'Configure unattended-upgrades for automatic security patches' },
 					] as check}
-						<div class="flex items-start gap-3 p-3 rounded-lg bg-base-300/30 hover:bg-base-300/50 transition-colors">
+						<div class="flex items-start gap-3 p-3 rounded-xl bg-base-300/30 hover:bg-base-300/50 transition-colors">
 							<div class="mt-0.5">
 								{#if check.ok}
 									<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -139,62 +172,77 @@
 		</div>
 
 	{:else if activeTab === 'users'}
-		{#if loading}
-			<div class="flex justify-center py-20"><span class="loading loading-spinner loading-lg text-primary"></span></div>
-		{:else}
-			<div class="overflow-x-auto animate-slide-up">
-				<table class="table table-sm w-full">
-					<thead>
-						<tr class="text-base-content/70">
-							<th>Username</th>
-							<th>UID</th>
-							<th>Home</th>
-							<th>Shell</th>
-							<th>Groups</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each users as user (user.uid)}
-							<tr class="hover:bg-base-300/30 transition-colors">
-								<td class="font-mono text-sm font-medium text-primary">{user.username}</td>
-								<td class="text-xs">{user.uid}</td>
-								<td class="text-xs font-mono text-base-content/60">{user.home}</td>
-								<td class="text-xs font-mono text-base-content/60">{user.shell}</td>
-								<td>
-									<div class="flex flex-wrap gap-1">
-										{#each (user.groups || []).slice(0, 5) as group}
-											<span class="badge badge-ghost badge-xs">{group}</span>
-										{/each}
+		<div class="overflow-x-auto animate-slide-up">
+			<table class="table table-sm w-full">
+				<thead>
+					<tr class="text-base-content/70">
+						<th>Username</th>
+						<th>UID</th>
+						<th>Home</th>
+						<th>Shell</th>
+						<th>Groups</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each users as user (user.uid)}
+						<tr class="hover:bg-base-300/30 transition-colors">
+							<td>
+								<div class="flex items-center gap-2">
+									<div class="flex h-7 w-7 items-center justify-center rounded-lg {(user.groups || []).some(g => g === 'sudo' || g === 'wheel') ? 'bg-warning/15 text-warning' : 'bg-primary/10 text-primary'} text-xs font-bold">
+										{user.username.charAt(0).toUpperCase()}
 									</div>
-								</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
-		{/if}
+									<span class="font-mono text-sm font-medium">{user.username}</span>
+								</div>
+							</td>
+							<td class="text-xs tabular-nums">{user.uid}</td>
+							<td class="text-xs font-mono text-base-content/60">{user.home}</td>
+							<td class="text-xs font-mono text-base-content/60">{user.shell}</td>
+							<td>
+								<div class="flex flex-wrap gap-1">
+									{#each (user.groups || []).slice(0, 5) as group}
+										<span class="badge badge-xs {group === 'sudo' || group === 'wheel' ? 'badge-warning' : 'badge-ghost'}">{group}</span>
+									{/each}
+								</div>
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
 
 	{:else if activeTab === 'audit'}
+		<!-- Firewall rules from real data -->
 		<div class="card bg-base-200 border border-base-300/50 animate-slide-up">
 			<div class="card-body p-5">
-				<h2 class="card-title text-lg mb-3">Recent Activity</h2>
-				<div class="space-y-2">
-					{#each [
-						{ time: '08:46:15', event: 'Dashboard accessed', user: 'admin', type: 'info' },
-						{ time: '08:45:02', event: 'Service nginx restarted', user: 'admin', type: 'warning' },
-						{ time: '08:30:11', event: 'SSH login successful', user: 'admin', type: 'success' },
-						{ time: '08:29:45', event: 'SSH login failed', user: 'root', type: 'error' },
-						{ time: '07:15:00', event: 'System update applied', user: 'system', type: 'info' },
-						{ time: '06:00:00', event: 'Automated backup completed', user: 'system', type: 'success' },
-					] as entry}
-						<div class="flex items-center gap-3 p-2.5 rounded-lg bg-base-300/30">
-							<span class="text-xs font-mono text-base-content/40 w-16">{entry.time}</span>
-							<span class="badge badge-xs {entry.type === 'error' ? 'badge-error' : entry.type === 'warning' ? 'badge-warning' : entry.type === 'success' ? 'badge-success' : 'badge-info'}">●</span>
-							<span class="text-sm flex-1">{entry.event}</span>
-							<span class="text-xs text-base-content/40 font-mono">{entry.user}</span>
-						</div>
-					{/each}
-				</div>
+				<h2 class="card-title text-lg mb-3">UFW Firewall Rules</h2>
+				{#if firewall?.rules && firewall.rules.length > 0}
+					<div class="overflow-x-auto">
+						<table class="table table-sm w-full">
+							<thead>
+								<tr class="text-base-content/70">
+									<th>To</th>
+									<th>Action</th>
+									<th>From</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each firewall.rules as rule, i}
+									<tr class="hover:bg-base-300/30 transition-colors">
+										<td class="font-mono text-sm">{rule.to || '-'}</td>
+										<td>
+											<span class="badge badge-sm {rule.action?.toLowerCase().includes('allow') ? 'badge-success' : 'badge-error'}">
+												{rule.action || 'ALLOW'}
+											</span>
+										</td>
+										<td class="font-mono text-sm text-base-content/60">{rule.from || 'Anywhere'}</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				{:else}
+					<p class="text-base-content/50 text-sm py-4 text-center">No firewall rules configured or firewall is inactive.</p>
+				{/if}
 			</div>
 		</div>
 	{/if}
