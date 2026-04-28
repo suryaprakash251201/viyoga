@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ../apps/backend
+      dockerfile: ../../deploy/Dockerfile.backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../apps/backend:/app
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - viyoga-data:/app/data
+    environment:
+      - VIYOGA_ENV=development
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../apps/frontend
+      dockerfile: ../../deploy/Dockerfile.frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../apps/frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host
+    depends_on:
+      - backend
+
+volumes:
+  viyoga-data:

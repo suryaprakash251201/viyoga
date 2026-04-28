@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+.svelte-kit/
+
+# Build outputs
+build/
+dist/
+*.exe
+
+# Database
+data/
+*.db
+
+# Environment
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+apps/backend/viyoga
+apps/backend/viyoga.exe
+
+# Logs
+*.log

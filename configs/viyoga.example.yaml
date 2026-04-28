@@ -1,0 +1,48 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+  frontend_dir: "./frontend/build"
+
+modules:
+  system_dashboard: true
+  linux_management: true
+  hardware_monitor: true
+  dns_gateway: false
+  container_manager: true
+  web_monitor: true
+  terminal: true
+  security: true
+
+metrics:
+  poll_interval: "2s"
+  retention_hours: 24
+  history_enabled: true
+
+database:
+  path: "./data/viyoga.db"
+
+auth:
+  enabled: false
+  jwt_secret: ""
+  session_hours: 24
+
+docker:
+  socket: "unix:///var/run/docker.sock"
+
+dns:
+  engine: "technitium"
+  api_url: "http://localhost:5380"
+  api_token: ""
+
+alerting:
+  enabled: false
+  channels:
+    - type: webhook
+      url: ""
+    - type: telegram
+      bot_token: ""
+      chat_id: ""
+
+logging:
+  level: "info"
+  format: "console"
