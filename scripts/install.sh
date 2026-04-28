@@ -83,10 +83,35 @@ preflight() {
     success "Memory: ${TOTAL_MEM}MB"
 }
 
+# ── Wait for apt locks to be released ──
+wait_for_apt() {
+    local MAX_WAIT=120
+    local WAITED=0
+
+    while fuser /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock /var/lib/dpkg/lock-frontend 2>/dev/null; do
+        if [[ $WAITED -eq 0 ]]; then
+            warn "Another package manager is running. Waiting for it to finish..."
+        fi
+        sleep 5
+        WAITED=$((WAITED + 5))
+        printf "\r  Waiting... %ds / %ds" "$WAITED" "$MAX_WAIT"
+        if [[ $WAITED -ge $MAX_WAIT ]]; then
+            echo ""
+            error "Timed out waiting for apt lock after ${MAX_WAIT}s. Kill the other process or try again later."
+        fi
+    done
+
+    if [[ $WAITED -gt 0 ]]; then
+        echo ""
+        success "Package manager lock released after ${WAITED}s"
+    fi
+}
+
 # ── Install system dependencies ──
 install_deps() {
     info "Installing system dependencies..."
-    apt-get update -qq
+    wait_for_apt
+    apt-get update -qq 2>/dev/null || apt-get update -qq -o DPkg::Lock::Timeout=60
     apt-get install -y -qq \
         curl wget git build-essential \
         ca-certificates gnupg lsb-release \
