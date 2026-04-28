@@ -145,6 +145,7 @@ func main() {
 		DNS:         dnsClient,
 		Monitor:     webMonitor,
 		AlertEngine: alertEngine,
+		FrontendDir: cfg.Server.FrontendDir,
 	})
 
 	// HTTP server

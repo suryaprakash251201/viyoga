@@ -1,7 +1,11 @@
 package api
 
 import (
+	"io/fs"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -35,6 +39,7 @@ type Server struct {
 	dns         *dns.TechnitiumClient
 	monitor     *monitor.Manager
 	alertEngine *alerting.Engine
+	frontendDir string
 }
 
 // ServerDeps holds optional dependencies for the API server.
@@ -46,6 +51,7 @@ type ServerDeps struct {
 	DNS         *dns.TechnitiumClient
 	Monitor     *monitor.Manager
 	AlertEngine *alerting.Engine
+	FrontendDir string
 }
 
 // NewServer creates a new API server with all dependencies.
@@ -55,6 +61,7 @@ func NewServer(deps ServerDeps) *Server {
 		hub:         deps.Hub,
 		store:       deps.Store,
 		docker:      deps.Docker,
+		frontendDir: deps.FrontendDir,
 		dns:         deps.DNS,
 		monitor:     deps.Monitor,
 		alertEngine: deps.AlertEngine,
@@ -94,11 +101,11 @@ func (s *Server) setupRoutes() {
 
 	// CORS
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:*", "http://127.0.0.1:*"},
+		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
+		AllowCredentials: false,
 		MaxAge:           300,
 	}))
 
@@ -170,7 +177,65 @@ func (s *Server) setupRoutes() {
 	// WebSocket endpoint
 	r.Get("/ws/metrics", s.handleWebSocket)
 
+	// Serve frontend static files (SPA mode)
+	if s.frontendDir != "" {
+		s.serveFrontend(r)
+	}
+
 	s.router = r
+}
+
+// serveFrontend serves the SvelteKit static build with SPA fallback.
+func (s *Server) serveFrontend(r chi.Router) {
+	absPath, err := filepath.Abs(s.frontendDir)
+	if err != nil {
+		log.Warn().Str("dir", s.frontendDir).Err(err).Msg("Invalid frontend directory")
+		return
+	}
+
+	// Check if directory exists
+	if _, err := os.Stat(absPath); os.IsNotExist(err) {
+		log.Warn().Str("dir", absPath).Msg("Frontend directory not found, skipping static serving")
+		return
+	}
+
+	fsys := os.DirFS(absPath)
+	fileServer := http.FileServer(http.FS(fsys))
+
+	log.Info().Str("dir", absPath).Msg("Serving frontend static files")
+
+	// Catch-all handler: serve static files, fallback to index.html for SPA
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		path := strings.TrimPrefix(r.URL.Path, "/")
+		if path == "" {
+			path = "index.html"
+		}
+
+		// Try to serve the exact file
+		if f, err := fs.Stat(fsys, path); err == nil && !f.IsDir() {
+			fileServer.ServeHTTP(w, r)
+			return
+		}
+
+		// Try path with index.html appended (for directory-style routes)
+		idxPath := path + "/index.html"
+		if _, err := fs.Stat(fsys, idxPath); err == nil {
+			r.URL.Path = "/" + idxPath
+			fileServer.ServeHTTP(w, r)
+			return
+		}
+
+		// SPA fallback: serve index.html for all non-file routes
+		indexFile, err := fs.ReadFile(fsys, "index.html")
+		if err != nil {
+			http.Error(w, "404 page not found", http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write(indexFile)
+	})
 }
 
 // requestLogger is a custom middleware for structured request logging.
